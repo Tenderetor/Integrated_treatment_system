@@ -1,0 +1,37 @@
+pump_one = 38; %put a slider
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%we want to get the latest pump2 value before we clear channel
+url = 'http://api.thingspeak.com/channels/1659120/fields/2.json?api_key=59088D47E1QH82QF';
+
+response = webread(url);
+number_of_last_entry = response.channel.last_entry_id;
+disp(number_of_last_entry);
+
+ for k=number_of_last_entry:-1:1
+     field2_values = response.feeds(k).field2
+     %disp("hello")
+     if (isnumeric(field2_values)~=true)
+         %disp("world")
+         preserve_pump_two_value = field2_values
+         break
+     end
+ end
+%end fetching the last data for the other pump
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%lets clear the channel
+rMessage=matlab.net.http.RequestMessage;
+rMessage.Method= matlab.net.http.RequestMethod.DELETE;
+uri='https://api.thingspeak.com/channels/1659120/feeds.json?api_key=R9V56TFE2FLIPACB';
+send(rMessage,uri)
+%end deleting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%update the pumps
+%disp("We now want to update the tree and the preserved value for pum one is:")
+%disp(preserve_pump_two_value)
+%disp("PUMP2 is now:")
+%disp(pump_two)
+combined_resp = thingSpeakWrite(1659120,'Fields',[1,2],'Values',{pump_one,preserve_pump_two_value},'WriteKey','59088D47E1QH82QF')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
